@@ -1,0 +1,49 @@
+{% extends "student/base.html" %}
+
+{% block title %}{{ course.code }} · QuickMark{% endblock %}
+
+{% set percentage = summary.percentage %}
+{% set tone = 'pill--none' if percentage is none else ('pill--good' if percentage >= 75 else ('pill--mid' if percentage >= 50 else 'pill--low')) %}
+
+{% block content %}
+<section class="wrap dashboard student-page">
+  <p class="breadcrumb"><a href="{{ url_for('main.history') }}">History</a> / {{ course.code }}</p>
+
+  <span class="course-card__code">{{ course.code }}</span>
+  <h1 class="dashboard__title">{{ course.title }}</h1>
+
+  <div class="summary">
+    <div class="summary__figure {{ tone }}">
+      {% if percentage is none %}-{% else %}{{ percentage }}%{% endif %}
+    </div>
+    <p class="summary__meta">
+      {% if summary.total %}
+        Present for {{ summary.present }} of {{ summary.total }} classes held.
+      {% else %}
+        No classes have been held yet.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel__heading">History</h2>
+    {% if history %}
+      <ul class="history">
+        {% for session, attended in history %}
+          <li class="history__row">
+            <span class="history__date">{{ session.started_at.strftime('%a %d %b %Y, %H:%M') }} UTC</span>
+            <span class="status-tag {{ 'status-tag--present' if attended else 'status-tag--absent' }}">
+              {{ 'Present' if attended else 'Absent' }}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v3M16 4v3"/></svg>
+        <span>No finished classes yet. Records appear once a session ends.</span>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

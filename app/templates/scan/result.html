@@ -1,0 +1,53 @@
+{% extends "student/base.html" %}
+
+{% block title %}{{ course.code }} · QuickMark{% endblock %}
+
+{% set tone = 'present' if result.accepted else 'rejected' %}
+
+{% block content %}
+<section class="wrap student-page result-page">
+  <div class="result-hero result-hero--{{ tone }}">
+    <div class="result-seal" aria-hidden="true">
+      <svg viewBox="0 0 72 72" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle class="result-seal__ring" cx="36" cy="36" r="32"/>
+        {% if result.accepted %}
+          <path class="result-seal__tick" d="M23 37.5 32.5 47 50 26.5"/>
+        {% else %}
+          <path class="result-seal__cross" d="M27 27l18 18M45 27l-18 18"/>
+        {% endif %}
+      </svg>
+    </div>
+
+    <span class="hero__eyebrow">
+      {{ course.code }}{% if result.accepted %} · {{ marked_at.strftime('%H:%M') }}{% endif %}
+    </span>
+    <h1 class="result-title">
+      {% if result.status == 'present' %}Present
+      {% elif result.status == 'already' %}Already present
+      {% else %}Not marked{% endif %}<em>.</em>
+    </h1>
+    <p class="result-msg">{{ result.message }}</p>
+    {% if result.reason %}<p class="result__reason">Reason: {{ result.reason }}</p>{% endif %}
+
+    <div class="result-actions">
+      {% if result.accepted %}
+        <a class="btn btn--primary btn--lg" href="{{ url_for('main.history') }}">Done</a>
+      {% elif result.code == 'device_limit' %}
+        <button class="btn btn--primary btn--lg" type="button" data-modal-open="modal-devices">Manage devices</button>
+        <a class="btn btn--ghost btn--lg" href="{{ url_for('main.history') }}">Back to history</a>
+      {% else %}
+        <a class="btn btn--primary btn--lg" href="{{ url_for('scan.scanner') }}">Try again</a>
+        <a class="btn btn--ghost btn--lg" href="{{ url_for('main.history') }}">Back to history</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  if (navigator.vibrate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    navigator.vibrate({{ '[35, 45, 90]' if result.accepted else '[150]' }});
+  }
+</script>
+{% endblock %}

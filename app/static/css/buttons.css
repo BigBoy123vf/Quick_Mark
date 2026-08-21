@@ -1,0 +1,86 @@
+/* ============================================================
+   buttons.css — the one button component for the whole app.
+   Loaded on every page, after the page's token stylesheet.
+   Falls back to Editorial Ledger values on pages that don't
+   load style.css (the auth pages load tokens.css only).
+   ============================================================ */
+
+.btn {
+  --btn-bg: var(--surface, #ffffff);
+  --btn-fg: var(--ink, #0e1d3d);
+  --btn-edge: var(--line, #e5e5e5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-body, "Geist", ui-sans-serif, system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--btn-edge);
+  border-radius: var(--radius-sm, 9px);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.13s ease, box-shadow 0.13s ease,
+    background-color 0.13s ease, border-color 0.13s ease, color 0.13s ease;
+}
+
+/* Primary — dark ink face lifted off a hard blue offset (the brand mark). */
+.btn--primary {
+  --btn-bg: var(--btn-face, #17244e);
+  --btn-fg: var(--btn-face-text, #ffffff);
+  --btn-edge: transparent;
+  box-shadow: -4px 4px 0 0 var(--btn-stack, #2563eb);
+}
+.btn--primary:hover { transform: translate(2px, -2px); box-shadow: -7px 7px 0 0 var(--btn-stack, #2563eb); }
+.btn--primary:active { transform: translate(0, 0); box-shadow: -2px 2px 0 0 var(--btn-stack, #2563eb); }
+
+/* Ghost — quiet bordered surface for secondary actions. */
+.btn--ghost { box-shadow: 0 1px 2px rgba(14, 29, 61, 0.05); }
+.btn--ghost:hover { border-color: var(--accent, #2563eb); color: var(--accent-deep, #1d4ed8); }
+
+/* Outline — ghost with the hard offset; sits between primary and ghost. */
+.btn--outline {
+  --btn-bg: transparent;
+  --btn-edge: var(--line-strong, #cbd5e1);
+  border-width: 1.5px;
+  box-shadow: -4px 4px 0 0 var(--line-strong, #cbd5e1);
+}
+.btn--outline:hover { transform: translate(2px, -2px); box-shadow: -7px 7px 0 0 var(--line-strong, #cbd5e1); background: var(--surface-soft, #fafafa); }
+.btn--outline:active { transform: translate(0, 0); box-shadow: -2px 2px 0 0 var(--line-strong, #cbd5e1); }
+
+/* Inverse — white face for use on dark cards. */
+.btn--inverse {
+  --btn-bg: #ffffff;
+  --btn-fg: #0e1d3d;
+  --btn-edge: transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.btn--inverse:hover { background: #f1f5f9; transform: translateY(-1px); }
+
+.btn--sm { padding: 0.4rem 0.85rem; font-size: 0.82rem; }
+.btn--lg { padding: 0.8rem 1.4rem; font-size: 1rem; }
+.btn--hero { padding: 0.72rem 1.4rem; font-size: 0.9rem; letter-spacing: -0.01em; }
+.btn--block { display: flex; width: 100%; }
+.btn__icon { width: 16px; height: 16px; }
+
+/* Text buttons — inline low-emphasis actions (unlink, discard, remove). */
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-body, "Geist", ui-sans-serif, system-ui, sans-serif);
+  font-size: 0.85rem;
+  color: var(--muted, #5f6b80);
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+.btn-text:hover { color: var(--ink, #0e1d3d); }
+.btn-text--danger:hover { color: var(--danger, #d4352c); }

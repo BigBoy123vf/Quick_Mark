@@ -1,0 +1,62 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Low attendance · QuickMark{% endblock %}
+
+{% macro pct_pill(value) -%}
+  {%- if value >= 50 -%}console-ppill console-ppill--mid{%- else -%}console-ppill console-ppill--low{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<header class="console-head">
+  <p class="console-eyebrow">Review</p>
+  <div class="console-head__row">
+    <h1 class="console-title">Low attendance</h1>
+  </div>
+  <p class="console-sub">Students sitting below {{ threshold }}%. Each row reads left to right, oldest class first: filled is present, hollow is a miss.</p>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat {{ 'console-stat--warn' if total }}"><span class="console-stat__num">{{ total }}</span><span class="console-stat__label">Below {{ threshold }}%</span></div>
+  <div class="console-stat"><span class="console-stat__num">{{ by_course|length }}</span><span class="console-stat__label">Course{{ 's' if by_course|length != 1 }}</span></div>
+</div>
+
+{% if by_course %}
+  <div class="console-callout">
+    <span class="console-marks console-marks--legend console-callout__legend" aria-hidden="true"><span class="console-mark console-mark--on"></span><span class="console-mark console-mark--off"></span></span>
+    Filled squares are classes attended; hollow squares are misses, in order.
+  </div>
+  {% for course, students in by_course %}
+    <section class="console-group">
+      <div class="console-group__head">
+        <h2 class="console-group__title">
+          <span class="console-group__code">{{ course.code }}</span>
+          <span class="console-group__name">{{ course.title }}</span>
+          <span class="console-section__count">{{ students|length }}</span>
+        </h2>
+        <a class="btn btn--ghost" href="{{ url_for('courses.export_course', course_id=course.id) }}">Export</a>
+      </div>
+      {% for item in students %}
+        <div class="console-markrow">
+          <span class="console-markrow__main">
+            <span class="console-markrow__name">{{ item.enrollment.full_name or (item.enrollment.student.full_name if item.enrollment.student else '-') }}</span>
+            <span class="console-markrow__idx">{{ item.enrollment.index_number }}</span>
+          </span>
+          <span class="console-marks" title="{{ item.summary.present }} of {{ item.summary.total }} present">
+            {% for present in item.marks %}<span class="console-mark {{ 'console-mark--on' if present else 'console-mark--off' }}"></span>{% endfor %}
+          </span>
+          <span class="console-markrow__tally">{{ item.summary.present }}/{{ item.summary.total }}</span>
+          <span class="{{ pct_pill(item.summary.percentage) }}">{{ item.summary.percentage }}%</span>
+        </div>
+      {% endfor %}
+    </section>
+  {% endfor %}
+{% else %}
+  <div class="console-empty">
+    <span class="console-empty__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+    <h2 class="console-empty__title">Everyone's above {{ threshold }}%</h2>
+    <p class="console-empty__body">No student is below the line, or no sessions have ended yet.</p>
+  </div>
+{% endif %}
+{% endblock %}

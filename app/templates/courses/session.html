@@ -1,0 +1,105 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ course.code }} session · QuickMark{% endblock %}
+
+{% block content %}
+<a class="console-back" href="{{ url_for('courses.detail', course_id=course.id) }}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  Back to {{ course.code }}
+</a>
+<nav class="console-crumb">
+  <a href="{{ url_for('courses.index') }}">Courses</a><span class="console-crumb__sep">/</span>
+  <a href="{{ url_for('courses.detail', course_id=course.id) }}">{{ course.code }}</a><span class="console-crumb__sep">/</span>Session
+</nav>
+
+<header class="console-head">
+  <p class="console-eyebrow">{{ session.started_at.strftime('%a %d %b %Y, %H:%M') }} UTC</p>
+  <div class="console-head__row">
+    <h1 class="console-title">Class attendance</h1>
+    <div class="console-head__actions">
+      <a class="btn btn--ghost" href="{{ url_for('courses.export_session', course_id=course.id, session_id=session.id) }}">Export CSV</a>
+      {% if not session.voided %}
+        <form method="post"
+              action="{{ url_for('courses.discard_session', course_id=course.id, session_id=session.id) }}"
+              onsubmit="return confirm('Discard this session? It won\'t count toward anyone\'s attendance.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn-text btn-text--danger" type="submit">Discard session</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat console-stat--live"><span class="console-stat__num">{{ present|length }}</span><span class="console-stat__label">Present</span></div>
+  <div class="console-stat {{ 'console-stat--warn' if absent }}"><span class="console-stat__num">{{ absent|length }}</span><span class="console-stat__label">Absent</span></div>
+</div>
+
+{% if session.voided %}
+  <div class="console-callout"><span class="console-tag console-tag--void">Voided</span> Discarded, it doesn't count toward attendance and is kept only for your records.</div>
+{% elif session.is_live %}
+  <div class="console-callout"><span class="console-tag console-tag--live">Live</span> Still live: these figures reflect scans so far. Absences are worked out when you end the session.</div>
+{% endif %}
+
+<div class="console-cols">
+  <section class="console-section">
+    <div class="console-section__head">
+      <h2 class="console-section__title">Present <span class="console-section__count">{{ present|length }}</span></h2>
+    </div>
+    {% if present %}
+      <ul class="console-rows">
+        {% for record in present %}
+          <li class="console-person">
+            <span class="console-person__name">{{ roster_names.get(record.student_id) or record.student.full_name }}</span>
+            <span class="console-person__id">{{ record.student.index_number }}</span>
+            {% if record.student_id in students_with_anomalies %}
+              <span class="console-tag console-tag--flag">Anomaly</span>
+            {% endif %}
+            {% if record.overridden_by_id %}
+              <span class="console-tag console-tag--flag" title="{{ record.override_reason }}">Manual</span>
+              {% if not session.voided %}
+                <form method="post"
+                      action="{{ url_for('courses.revert_attendance_override', course_id=course.id, session_id=session.id, record_id=record.id) }}"
+                      onsubmit="return confirm('Undo this manual override? {{ record.student.full_name }} will go back to absent.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn-text btn-text--danger" type="submit">Undo</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="console-note">No one has scanned in yet.</p>
+    {% endif %}
+  </section>
+
+  <section class="console-section">
+    <div class="console-section__head">
+      <h2 class="console-section__title">Absent <span class="console-section__count">{{ absent|length }}</span></h2>
+    </div>
+    {% if absent %}
+      <ul class="console-rows">
+        {% for record in absent %}
+          <li class="console-person">
+            <span class="console-person__name">{{ roster_names.get(record.student_id) or record.student.full_name }}</span>
+            <span class="console-person__id">{{ record.student.index_number }}</span>
+            {% if not session.is_live and not session.voided %}
+              <form class="override-form" method="post"
+                    action="{{ url_for('courses.override_attendance', course_id=course.id, session_id=session.id, record_id=record.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input class="console-input console-input--sm" type="text" name="reason" placeholder="Reason (e.g. phone died)" required>
+                <button class="btn btn--ghost btn--sm" type="submit">Mark present</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% elif session.is_live %}
+      <p class="console-note">Absences are worked out when you end the session.</p>
+    {% else %}
+      <p class="console-note">Everyone enrolled was present.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

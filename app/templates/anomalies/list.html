@@ -1,0 +1,140 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Anomalies · QuickMark{% endblock %}
+
+{% block content %}
+<header class="console-head">
+  <p class="console-eyebrow">Review · Audit log</p>
+  <div class="console-head__row">
+    <h1 class="console-title">Anomalies</h1>
+  </div>
+  <p class="console-sub">Every scan below still counted as present. These are notes for your awareness: a new phone, a shared device, a scan from outside the room. Follow up if something looks off.</p>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat {{ 'console-stat--warn' if stats.unreviewed }}">
+    <span class="console-stat__num">{{ stats.unreviewed }}</span>
+    <span class="console-stat__label">Unreviewed</span>
+  </div>
+  <div class="console-stat {{ 'console-stat--bad' if stats.critical }}">
+    <span class="console-stat__num">{{ stats.critical }}</span>
+    <span class="console-stat__label">Critical, unreviewed</span>
+  </div>
+  <div class="console-stat">
+    <span class="console-stat__num">{{ stats.last_day }}</span>
+    <span class="console-stat__label">Last 24 hours</span>
+  </div>
+</div>
+
+<form class="console-filters" method="get" action="{{ url_for('anomalies.index') }}">
+  <label class="console-filter">
+    <span class="console-filter__label">Status</span>
+    <select class="console-select" name="status" onchange="this.form.submit()">
+      <option value="unreviewed" {{ 'selected' if filters.status == 'unreviewed' }}>Unreviewed</option>
+      <option value="reviewed" {{ 'selected' if filters.status == 'reviewed' }}>Reviewed</option>
+      <option value="all" {{ 'selected' if filters.status == 'all' }}>All</option>
+    </select>
+  </label>
+  <label class="console-filter">
+    <span class="console-filter__label">Severity</span>
+    <select class="console-select" name="severity" onchange="this.form.submit()">
+      <option value="all" {{ 'selected' if filters.severity == 'all' }}>All</option>
+      {% for level in severities %}
+        <option value="{{ level }}" {{ 'selected' if filters.severity == level }}>{{ level|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="console-filter">
+    <span class="console-filter__label">Type</span>
+    <select class="console-select" name="type" onchange="this.form.submit()">
+      <option value="all" {{ 'selected' if filters.type == 'all' }}>All</option>
+      {% for code, label in anomaly_types.items() %}
+        <option value="{{ code }}" {{ 'selected' if filters.type == code }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</form>
+
+{% if anomalies %}
+  <ul class="console-log">
+    {% for anomaly in anomalies %}
+      <li>
+        <article class="console-logrow {{ 'console-logrow--reviewed' if anomaly.reviewed }}">
+          <span class="console-logrow__time">
+            {{ anomaly.detected_at.strftime('%d %b') }}<span>{{ anomaly.detected_at.strftime('%H:%M') }}</span>
+          </span>
+          <div class="console-logrow__body">
+            <span class="console-logrow__reason console-logrow__reason--{{ anomaly.severity }}">{{ anomaly.reason }}</span>
+            <span class="console-logrow__who">
+              <strong>{{ anomaly.student.full_name }}</strong>
+              {% if anomaly.student.index_number %} · {{ anomaly.student.index_number }}{% endif %}
+              {% if anomaly.session %} · {{ anomaly.session.course.code }}{% else %} · at sign-in{% endif %}
+            </span>
+            {% if anomaly.details %}
+              <span class="console-logrow__facts">
+                {% if anomaly.anomaly_type == 'geofence_far' %}
+                  {{ anomaly.details.distance_m }} m from the room · allowed {{ anomaly.details.radius_m }} m · GPS ±{{ anomaly.details.accuracy_m }} m
+                {% elif anomaly.anomaly_type == 'proxy_scan_suspected' %}
+                  Same phone already marked {{ anomaly.details.shared_with }}{% if anomaly.details.shared_with_index %} ({{ anomaly.details.shared_with_index }}){% endif %}
+                {% elif anomaly.anomaly_type == 'shared_device' %}
+                  {{ anomaly.details.device }} registered to {{ anomaly.details.shared_with }}{% if anomaly.details.shared_with_index %} ({{ anomaly.details.shared_with_index }}){% endif %}{% if anomaly.ip_address %} · {{ anomaly.ip_address }}{% endif %}
+                {% elif anomaly.anomaly_type == 'new_device' %}
+                  {{ anomaly.details.device }}{% if anomaly.ip_address %} · {{ anomaly.ip_address }}{% endif %}
+                {% else %}
+                  {% for key, value in anomaly.details.items() %}{{ key }} {{ value }}{{ ' · ' if not loop.last }}{% endfor %}
+                {% endif %}
+              </span>
+            {% endif %}
+            {% if anomaly.reviewed and anomaly.reviewer_notes %}
+              <span class="console-logrow__note">“{{ anomaly.reviewer_notes }}”</span>
+            {% endif %}
+          </div>
+          <div class="console-logrow__aside">
+            {% if anomaly.reviewed %}
+              <span class="console-reviewed">
+                Reviewed{% if anomaly.reviewed_by %} · {{ anomaly.reviewed_by.full_name }}{% endif %}
+                {% if anomaly.reviewed_at %}<span>{{ anomaly.reviewed_at.strftime('%d %b, %H:%M') }}</span>{% endif %}
+              </span>
+            {% else %}
+              <form class="console-review" method="post" action="{{ url_for('anomalies.review', anomaly_id=anomaly.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="{{ filters.status }}">
+                <input type="hidden" name="severity" value="{{ filters.severity }}">
+                <input type="hidden" name="type" value="{{ filters.type }}">
+                <input type="hidden" name="page" value="{{ pagination.page }}">
+                <input class="console-review__note" type="text" name="note" maxlength="500" placeholder="Add a note (optional)">
+                <button class="btn btn--ghost btn--sm" type="submit">Mark reviewed</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      </li>
+    {% endfor %}
+  </ul>
+
+  {% if pagination.pages > 1 %}
+    <nav class="console-pager" aria-label="Pagination">
+      {% if pagination.has_prev %}
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('anomalies.index', page=pagination.prev_num, **filters) }}">← Newer</a>
+      {% endif %}
+      <span class="console-pager__label">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+      {% if pagination.has_next %}
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('anomalies.index', page=pagination.next_num, **filters) }}">Older →</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="console-empty">
+    <span class="console-empty__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+    {% if filters.status != 'all' or filters.severity != 'all' or filters.type != 'all' %}
+      <h2 class="console-empty__title">Nothing matches these filters</h2>
+      <p class="console-empty__body">Try widening the status, severity, or type filter above.</p>
+    {% else %}
+      <h2 class="console-empty__title">Nothing logged</h2>
+      <p class="console-empty__body">Scans from a new device, a shared phone, or outside the room will show up here for you to review.</p>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

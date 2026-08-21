@@ -1,0 +1,29 @@
+/* ============================================================
+   tokens.css — "Editorial Ledger" design tokens
+   Load this FIRST, before auth.css / home.css.
+
+   Fonts (add to <head>):
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+   ============================================================ */
+
+:root {
+  --ed-hot:        #2563eb;
+  --ed-hot-deep:   #1d4ed8;
+  --ed-hot-soft:   rgba(37, 99, 235, 0.12);
+  --ed-hot-light:  #60a5fa;
+
+  --ed-ink:        #0e1d3d;
+  --ed-ink-2:      #2a3b5d;
+  --ed-rule:       #1f3357;
+
+  --ed-cream:      #ffffff;
+  --ed-cream-2:    #f5f5f5;
+  --ed-cream-3:    #fafafa;
+  --ed-rule-cream: #e5e5e5;
+
+  --ed-serif: "Newsreader", ui-serif, Georgia, serif;
+  --ed-sans:  "Geist", ui-sans-serif, system-ui, sans-serif;
+  --ed-mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}

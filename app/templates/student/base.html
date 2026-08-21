@@ -1,0 +1,173 @@
+{% from 'student/_settings.html' import settings_panel with context %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}QuickMark{% endblock %}</title>
+
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.classList.add('dark', '__dark_pending');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .__dark_pending body { visibility: hidden; }
+    .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: none;
+      background: #ffffff; border-top: 1px solid #e5e5e5; }
+    .dark .bottom-bar { background: #161b22; border-top-color: rgba(255,255,255,0.08); }
+    @media (max-width: 639px) { .bottom-bar { display: flex; } }
+  </style>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500;1,6..72,600&family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ static_v('css/style.css') }}">
+  <link rel="stylesheet" href="{{ static_v('css/buttons.css') }}">
+  <link rel="stylesheet" href="{{ static_v('css/student.css') }}">
+</head>
+<body class="student">
+  <header class="student-top">
+    <a class="site-brand" href="{{ url_for('main.history') }}">
+      <span class="site-brand__mark" aria-hidden="true"></span>
+      <span class="site-brand__name">QuickMark</span>
+    </a>
+    <div class="student-top__settings">
+      {{ settings_panel('desktop') }}
+      <button class="gear" type="button" data-dropdown-trigger aria-controls="settings-desktop" aria-expanded="false" aria-label="Settings">
+        <span class="avatar" aria-hidden="true">{{ current_user.full_name[0]|upper }}</span>
+      </button>
+    </div>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack wrap">
+        {% for category, message in messages %}
+          <p class="flash flash--{{ category }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="student-main">{% block content %}{% endblock %}</main>
+
+  {% include 'student/_next_class_widget.html' %}
+  {% include 'student/_bottom_bar.html' %}
+
+  <div class="modal" id="modal-password" aria-hidden="true">
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Change password">
+      <h2 class="modal__title">Change password</h2>
+      <form class="form" method="post" action="{{ url_for('main.change_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="field">
+          <span class="field__label">Current password</span>
+          <input class="field__input" type="password" name="current_password" autocomplete="current-password" required>
+        </label>
+        <label class="field">
+          <span class="field__label">New password</span>
+          <input class="field__input" type="password" name="new_password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label class="field">
+          <span class="field__label">Confirm new password</span>
+          <input class="field__input" type="password" name="confirm_password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" type="button" data-modal-close>Cancel</button>
+          <button class="btn btn--primary" type="submit">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-devices" aria-hidden="true">
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Manage devices">
+      <div class="modal__head">
+        <h2 class="modal__title">Manage devices</h2>
+        <p class="device-count" id="device-count-label"></p>
+      </div>
+      <p class="modal__desc">You can register up to 2 devices. Removing a device signs it out; you'll need to sign in again on that device to re-register it.</p>
+      <div id="device-list-body" class="device-list">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" data-modal-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ static_v('js/student.js') }}"></script>
+  <script>
+    (function () {
+      var widget = document.getElementById('next-class-widget');
+      if (!widget) return;
+
+      var id = widget.getAttribute('data-next-class-id');
+      var storageKey = 'next-class-dismissed';
+      var dismissed;
+      try { dismissed = localStorage.getItem(storageKey); } catch (e) { dismissed = null; }
+
+      if (dismissed !== id) {
+        widget.hidden = false;
+      }
+
+      var closeButton = widget.querySelector('[data-next-class-close]');
+      if (closeButton) {
+        closeButton.addEventListener('click', function () {
+          widget.hidden = true;
+          try { localStorage.setItem(storageKey, id); } catch (e) {}
+        });
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      try { if (sessionStorage.getItem('device-info-sent')) return; } catch (e) {}
+
+      function send(extra) {
+        var data = {
+          screen: null,
+          timezone: null,
+          cpuCores: navigator.hardwareConcurrency || null,
+          deviceMemory: navigator.deviceMemory || null
+        };
+        if (window.screen) {
+          var ratio = window.devicePixelRatio ? ' @' + (Math.round(window.devicePixelRatio * 10) / 10) + 'x' : '';
+          data.screen = screen.width + '×' + screen.height + ratio;
+        }
+        try { data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+        if (extra) { data.model = extra.model || null; data.platformVersion = extra.platformVersion || null; }
+
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        fetch('{{ url_for("main.device_info") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfMeta ? csrfMeta.getAttribute('content') : ''
+          },
+          body: JSON.stringify(data),
+          credentials: 'same-origin'
+        }).then(function () {
+          try { sessionStorage.setItem('device-info-sent', '1'); } catch (e) {}
+        }).catch(function () {});
+      }
+
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion'])
+          .then(send).catch(function () { send(null); });
+      } else {
+        send(null);
+      }
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "student/base.html" %}
+
+{% block title %}Pick a class · QuickMark{% endblock %}
+
+{% block content %}
+<section class="wrap student-page">
+  <header class="student-page__head">
+    <span class="hero__eyebrow">{{ lecturer.full_name }}</span>
+    <h1 class="student-page__title">Which class?</h1>
+    <p class="student-page__lead">More than one of your classes with this lecturer is live. Pick the one you're in.</p>
+  </header>
+  <div class="pick-list">
+    {% for course in courses %}
+      <a class="btn btn--primary btn--lg btn--block" href="{{ url_for('scan.scan', token=lecturer.qr_token, course=course.id) }}">
+        {{ course.code }} · {{ course.title }}
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

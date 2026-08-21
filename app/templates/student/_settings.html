@@ -1,0 +1,31 @@
+{% macro settings_panel(suffix) %}
+<div class="settings-menu" id="settings-{{ suffix }}" role="menu" aria-hidden="true">
+  <div class="settings-menu__account">
+    <span class="avatar" aria-hidden="true">{{ current_user.full_name[0]|upper }}</span>
+    <div class="settings-menu__id">
+      <strong>{{ current_user.full_name }}</strong>
+      <span>{{ current_user.email }}</span>
+    </div>
+  </div>
+
+  <button class="settings-menu__row" type="button" data-theme-toggle role="switch" aria-checked="false">
+    <span>Dark mode</span>
+    <span class="switch" aria-hidden="true"></span>
+  </button>
+
+  <button class="settings-menu__row" type="button" data-modal-open="modal-password">
+    <span>Change password</span>
+    <span class="settings-menu__chev" aria-hidden="true">›</span>
+  </button>
+
+  <button class="settings-menu__row" type="button" data-modal-open="modal-devices">
+    <span>Manage devices</span>
+    <span class="settings-menu__chev" aria-hidden="true">›</span>
+  </button>
+
+  <form class="settings-menu__logout" method="post" action="{{ url_for('auth.logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="settings-menu__row settings-menu__row--danger" type="submit">Log out</button>
+  </form>
+</div>
+{% endmacro %}

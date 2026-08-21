@@ -1,0 +1,9 @@
+{% if next_class %}
+  <div class="next-class" id="next-class-widget"
+       data-next-class-id="{{ next_class.course.id }}:{{ next_class.when.isoformat() }}" hidden>
+    <button class="next-class__close" type="button" aria-label="Dismiss" data-next-class-close>&times;</button>
+    <p class="next-class__eyebrow">Next class</p>
+    <p class="next-class__course">{{ next_class.course.code }}</p>
+    <p class="next-class__when">{{ next_class_label }}</p>
+  </div>
+{% endif %}

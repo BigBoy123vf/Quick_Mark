@@ -1,0 +1,239 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ course.code }} · QuickMark{% endblock %}
+
+{% macro pct_pill(value) -%}
+  {%- if value is none -%}console-muted{%- elif value >= 75 -%}console-ppill console-ppill--good{%- elif value >= 50 -%}console-ppill console-ppill--mid{%- else -%}console-ppill console-ppill--low{%- endif -%}
+{%- endmacro %}
+
+{% set weekday_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+
+{% block content %}
+<a class="console-back" href="{{ url_for('courses.index') }}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  Back to Courses
+</a>
+<nav class="console-crumb"><a href="{{ url_for('courses.index') }}">Courses</a><span class="console-crumb__sep">/</span>{{ course.code }}</nav>
+
+<header class="console-head">
+  <p class="console-eyebrow">{{ course.code }}</p>
+  <div class="console-head__row">
+    <h1 class="console-title">{{ course.title }}</h1>
+  </div>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat"><span class="console-stat__num">{{ enrollments|length }}</span><span class="console-stat__label">Enrolled</span></div>
+  <div class="console-stat"><span class="console-stat__num">{{ sessions|length }}</span><span class="console-stat__label">Session{{ 's' if sessions|length != 1 }}</span></div>
+  {% if live_session %}
+    <div class="console-stat console-stat--live"><span class="console-stat__num">{{ live_session.records|length }}</span><span class="console-stat__label">Present · live</span></div>
+  {% endif %}
+</div>
+
+<section class="console-live {{ 'console-live--on' if live_session }}">
+  <div class="console-qr">{{ qr_svg|safe }}</div>
+  <div class="console-live__body">
+    {% if live_session %}
+      <span class="console-livechip"><i class="console-pip"></i>Live now</span>
+      <div class="console-live__count"><b>{{ live_session.records|length }}</b><span>marked present</span></div>
+      <p class="console-live__meta">Started {{ live_session.started_at.strftime('%H:%M') }} UTC · scanning is open</p>
+      <p class="console-live__note">One personal code, the same for every class you teach. <a href="{{ url_for('courses.my_qr') }}">Open the printable poster</a>.</p>
+      <div class="console-live__actions">
+        <form method="post" action="{{ url_for('courses.end_session', course_id=course.id, session_id=live_session.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn--primary btn--lg" type="submit">End session</button>
+        </form>
+        <form method="post"
+              action="{{ url_for('courses.discard_session', course_id=course.id, session_id=live_session.id) }}"
+              onsubmit="return confirm('Discard this session? It won\'t count toward anyone\'s attendance.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn-text btn-text--danger" type="submit">Started by mistake? Discard it</button>
+        </form>
+      </div>
+    {% else %}
+      <span class="console-live__eyebrow">Attendance code</span>
+      <h2 class="console-live__title">Start a class session</h2>
+      <p class="console-live__note">Starting captures the room location and opens the scan window. Your code stays the same: it routes to whichever class is live. <a href="{{ url_for('courses.my_qr') }}">Open the printable poster</a>.</p>
+      <div class="console-live__actions">
+        <form method="post" action="{{ url_for('courses.start_session', course_id=course.id) }}" id="start-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="latitude">
+          <input type="hidden" name="longitude">
+          <input type="hidden" name="accuracy">
+          <button class="btn btn--primary btn--lg" type="button" id="start-btn">Start session</button>
+        </form>
+        <p class="console-live__meta" id="geo-status">No live session right now.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="console-section">
+  <div class="console-section__head">
+    <h2 class="console-section__title">Sessions <span class="console-section__count">{{ sessions|length }}</span></h2>
+  </div>
+  {% if sessions %}
+    <ul class="console-rows">
+      {% for session, present_count in sessions %}
+        <li>
+          <a class="console-srow" href="{{ url_for('courses.session_detail', course_id=course.id, session_id=session.id) }}">
+            <span class="console-srow__main">{{ session.started_at.strftime('%a %d %b, %H:%M') }} UTC</span>
+            <span class="console-srow__count">{{ present_count }} present</span>
+            {% if session.voided %}
+              <span class="console-tag console-tag--void">Voided</span>
+            {% elif session.is_live %}
+              <span class="console-tag console-tag--live">Live</span>
+            {% else %}
+              <span class="console-tag">Ended</span>
+            {% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="console-note">No sessions yet. Start one above to open the scan window.</p>
+  {% endif %}
+</section>
+
+<section class="console-section">
+  <div class="console-section__head">
+    <h2 class="console-section__title">Weekly schedule <span class="console-section__count">{{ course.schedule_slots|length }}</span></h2>
+  </div>
+  <p class="console-note">Feeds the "next class" reminder students see. Purely informational: start/end the session yourself when class actually begins.</p>
+
+  {% if course.schedule_slots %}
+    <ul class="console-rows">
+      {% for slot in course.schedule_slots %}
+        <li class="console-srow">
+          <span class="console-srow__main">{{ weekday_names[slot.day_of_week] }} · {{ slot.start_time.strftime('%I:%M %p') }}</span>
+          <form method="post"
+                action="{{ url_for('courses.delete_schedule_slot', course_id=course.id, slot_id=slot.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn-text btn-text--danger" type="submit">Remove</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form class="schedule-row schedule-row--add" method="post"
+        action="{{ url_for('courses.add_schedule_slot', course_id=course.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <select class="console-input" name="day_of_week" required>
+      <option value="">Day</option>
+      {% for name in weekday_names %}
+        <option value="{{ loop.index0 }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+    <input class="console-input" type="time" name="start_time" required>
+    <button class="btn btn--ghost btn--sm" type="submit">+ Add class time</button>
+  </form>
+</section>
+
+<section class="console-section">
+  <div class="console-section__head">
+    <h2 class="console-section__title">Roster <span class="console-section__count">{{ enrollments|length }}</span></h2>
+    {% if enrollments %}
+      <a class="btn btn--ghost" href="{{ url_for('courses.export_course', course_id=course.id) }}">Export CSV</a>
+    {% endif %}
+  </div>
+
+  {% if enrollments %}
+    <div class="console-card console-card--pad0">
+      <table class="console-table">
+        <thead>
+          <tr><th>Index number</th><th>Name</th><th>Attendance</th><th>Account</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for enrollment in enrollments %}
+            {% set summary = summaries.get(enrollment.student_id) %}
+            <tr>
+              <td class="console-mono">{{ enrollment.index_number }}</td>
+              <td>{{ enrollment.full_name or '-' }}</td>
+              <td>
+                {% if summary and summary.percentage is not none %}
+                  <span class="{{ pct_pill(summary.percentage) }}">{{ summary.percentage }}%</span>
+                {% else %}
+                  <span class="console-muted">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if enrollment.student_id %}
+                  <div class="console-linked">
+                    <span class="console-tag console-tag--linked">Linked</span>
+                    <span class="console-muted">{{ enrollment.student.full_name }}</span>
+                    <form method="post"
+                          action="{{ url_for('courses.unlink_enrollment', course_id=course.id, enrollment_id=enrollment.id) }}"
+                          onsubmit="return confirm('Unlink this index number from the student\'s account? They will have to link an index number again before they can scan.');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="btn-text btn-text--danger" type="submit">Unlink</button>
+                    </form>
+                  </div>
+                {% else %}
+                  <span class="console-tag console-tag--muted">Not signed up</span>
+                {% endif %}
+              </td>
+              <td class="console-cell--right">
+                <form method="post"
+                      action="{{ url_for('courses.remove_enrollment', course_id=course.id, enrollment_id=enrollment.id) }}"
+                      onsubmit="return confirm('Remove this student from the roster? Their attendance records for this course will also be deleted.');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn-text btn-text--danger" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="console-note">No students on the roster yet. Add them below.</p>
+  {% endif %}
+
+  <form class="console-form console-card" method="post"
+        action="{{ url_for('courses.upload_roster', course_id=course.id) }}"
+        enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="console-field">
+      <span class="console-label">Paste index numbers</span>
+      <textarea class="console-textarea" name="roster_text" rows="4"
+                placeholder="One per line. Optional name after a comma:&#10;PS/ITC/21/0042, Ama Mensah"></textarea>
+    </label>
+    <label class="console-field">
+      <span class="console-label">Or upload a CSV</span>
+      <input class="console-file" type="file" name="roster_file" accept=".csv,text/csv,text/plain">
+      <span class="console-hint">Columns: index number, name (name optional).</span>
+    </label>
+    <button class="btn btn--primary console-form__submit" type="submit">Add to roster</button>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ static_v('js/geo.js') }}"></script>
+<script>
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) {
+    const startForm = document.getElementById('start-form');
+    const geoStatus = document.getElementById('geo-status');
+    startBtn.addEventListener('click', function () {
+      startBtn.disabled = true;
+      geoStatus.textContent = 'Getting the room location…';
+      captureLocation({
+        onStatus: function (message) { geoStatus.textContent = message; },
+        onFail: function (message) {
+          startBtn.disabled = false;
+          geoStatus.textContent = message;
+        },
+        onFix: function (coords) {
+          geoStatus.textContent = 'Room location captured (±' + Math.round(coords.accuracy) + ' m). Starting…';
+          startForm.latitude.value = coords.latitude;
+          startForm.longitude.value = coords.longitude;
+          startForm.accuracy.value = coords.accuracy;
+          startForm.submit();
+        }
+      });
+    });
+  }
+</script>
+{% endblock %}

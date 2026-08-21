@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Student Devices · QuickMark{% endblock %}
+
+{% block content %}
+{% set switchers = rows | selectattr('switch_count') | list | length %}
+<header class="console-head">
+  <p class="console-eyebrow">Review</p>
+  <div class="console-head__row">
+    <h1 class="console-title">Student devices</h1>
+  </div>
+  <p class="console-sub">Each student's account is tied to the phone it registered on. A switch or a second active device is worth a second look, but nothing here is blocked.</p>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat"><span class="console-stat__num">{{ rows|length }}</span><span class="console-stat__label">Students</span></div>
+  <div class="console-stat {{ 'console-stat--warn' if switchers }}"><span class="console-stat__num">{{ switchers }}</span><span class="console-stat__label">Switched phone</span></div>
+</div>
+
+{% if rows %}
+  <div class="console-card console-card--pad0">
+    <table class="console-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Index number</th>
+          <th>Active</th>
+          <th>Switches</th>
+          <th>Devices</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr class="{{ 'console-row--warn' if row.switch_count >= 2 }}">
+            <td>{{ row.student.full_name or '-' }}</td>
+            <td class="console-mono">{{ row.student.index_number or '-' }}</td>
+            <td>
+              <span class="console-slots" title="{{ row.active_count }} of 2 devices active" aria-hidden="true">
+                {% for i in range(2) %}<span class="console-slot {{ 'console-slot--on' if i < row.active_count }}"></span>{% endfor %}
+              </span>
+            </td>
+            <td>
+              {% if row.switch_count == 0 %}
+                <span class="console-muted">-</span>
+              {% else %}
+                <span class="console-ppill {{ 'console-ppill--mid' if row.switch_count == 1 else 'console-ppill--low' }}">{{ row.switch_count }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="console-devices">
+                {% for device in row.devices %}
+                  <div class="console-device {{ 'console-device--removed' if device.removed }}">
+                    <div class="console-device__head">
+                      <strong>{{ device.name or 'Unknown device' }}</strong>
+                      {% if device.model %}<span class="console-device__model">{{ device.model }}</span>{% endif %}
+                      {% if device.removed %}<span class="console-device__removed">removed</span>{% endif %}
+                    </div>
+                    <dl class="console-device__grid">
+                      {% if device.os %}<dt>System</dt><dd>{{ device.os }}{% if device.browser %} · {{ device.browser }}{% endif %}</dd>{% endif %}
+                      {% if device.screen %}<dt>Screen</dt><dd>{{ device.screen }}</dd>{% endif %}
+                      {% if device.hardware %}<dt>Hardware</dt><dd>{{ device.hardware }}</dd>{% endif %}
+                      {% if device.timezone %}<dt>Timezone</dt><dd>{{ device.timezone }}</dd>{% endif %}
+                      {% if device.ip %}<dt>Last IP</dt><dd class="console-mono">{{ device.ip }}</dd>{% endif %}
+                      <dt>Added</dt><dd>{{ device.created_at.strftime('%-d %b %Y') }}{% if device.last_seen %} · seen {{ device.last_seen.strftime('%-d %b %Y') }}{% endif %}</dd>
+                    </dl>
+                  </div>
+                {% else %}
+                  <span class="console-muted">No devices</span>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="console-empty">
+    <span class="console-empty__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+    </span>
+    <h2 class="console-empty__title">No device data yet</h2>
+    <p class="console-empty__body">Students who have signed in and registered a device will appear here.</p>
+  </div>
+{% endif %}
+{% endblock %}

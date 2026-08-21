@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e1d3d">
+  <title>Link your index number · QuickMark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ static_v('css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ static_v('css/buttons.css') }}">
+  <link rel="stylesheet" href="{{ static_v('css/auth.css') }}">
+</head>
+<body>
+<div class="auth auth-shell">
+
+  <main class="auth-form-side">
+    <p class="auth-corner-mark">QUICKMARK · <b>2026</b> · SETUP</p>
+
+    <div class="auth-form-wrap">
+      <div class="auth-mbrand">
+        <div class="auth-mbrand__brand">
+          <span class="auth-mbrand__q">QuickMark</span>
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="auth-flash">
+            {% for category, message in messages %}
+              <p class="auth-flash__item auth-flash__item--{{ category }}">{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% if confirming and matches %}
+        <p class="auth-eyebrow auth-r auth-r1">Confirm it's you</p>
+        <h1 class="auth-title auth-r auth-r2">{{ index_number }}</h1>
+        <p class="auth-sub auth-r auth-r3">
+          This index number is on {{ matches|length }} course roster{{ 's' if matches|length != 1 }}.
+          Check it's you before linking. You only do this once.
+        </p>
+
+        <ul class="auth-matches auth-r auth-r4">
+          {% for enrollment in matches %}
+            <li class="auth-matches__item">
+              <span class="auth-matches__course">{{ enrollment.course.code }} · {{ enrollment.course.title }}</span>
+              <span class="auth-matches__meta">
+                {% if enrollment.full_name %}listed as {{ enrollment.full_name }} · {% endif %}{{ enrollment.course.lecturer.full_name }}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <form class="auth-form auth-r auth-r5" method="post" action="{{ url_for('auth.link_index') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="index_number" value="{{ index_number }}">
+          <input type="hidden" name="confirmed" value="yes">
+          <button class="btn btn--primary btn--block auth-submit" type="submit">Yes, that's me, link it</button>
+        </form>
+        <p class="auth-signup auth-r auth-r6">
+          Not you? <a href="{{ url_for('auth.link_index') }}">Re-enter your index number ↗&#xFE0E;</a>
+        </p>
+
+      {% elif confirming %}
+        <p class="auth-eyebrow auth-r auth-r1">Not found yet</p>
+        <h1 class="auth-title auth-r auth-r2">{{ index_number }}</h1>
+
+        <div class="auth-note auth-r auth-r3">
+          <span class="auth-note__tag">Check first</span>
+          <p class="auth-note__head">No course roster lists this number yet</p>
+          <p class="auth-note__body">
+            If your lecturer hasn't uploaded the class list, you can link now and your
+            courses will appear once they do. Otherwise, double-check the number:
+            only a lecturer can correct it afterwards.
+          </p>
+        </div>
+
+        <form class="auth-form auth-r auth-r4" method="post" action="{{ url_for('auth.link_index') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="index_number" value="{{ index_number }}">
+          <input type="hidden" name="confirmed" value="yes">
+          <button class="btn btn--primary btn--block auth-submit" type="submit">Link it anyway</button>
+        </form>
+        <p class="auth-signup auth-r auth-r5">
+          Made a typo? <a href="{{ url_for('auth.link_index') }}">Re-enter your index number ↗&#xFE0E;</a>
+        </p>
+
+      {% else %}
+        <p class="auth-eyebrow auth-r auth-r1">One-time setup</p>
+        <h1 class="auth-title auth-r auth-r2">Link your <em>index number</em>.</h1>
+        <p class="auth-sub auth-r auth-r3">
+          This connects your account to your course rosters. You only do it once,
+          so make sure it's exactly right.
+        </p>
+
+        <form class="auth-form auth-r auth-r4" method="post" action="{{ url_for('auth.link_index') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="auth-field">
+            <label class="auth-label" for="index_number">Index number</label>
+            <input class="auth-input" type="text" id="index_number" name="index_number"
+                   value="{{ index_number or '' }}" placeholder="PS/ITC/21/0042"
+                   autocomplete="off" required autofocus>
+          </div>
+          <button class="btn btn--primary btn--block auth-submit" type="submit">Continue</button>
+        </form>
+      {% endif %}
+    </div>
+  </main>
+
+</div>
+<script>
+  (function () {
+    document.querySelectorAll('.auth-flash__item').forEach(function (flash) {
+      setTimeout(function () {
+        flash.style.transition = 'opacity .4s';
+        flash.style.opacity = '0';
+        setTimeout(function () { flash.remove(); }, 420);
+      }, 4000);
+    });
+  })();
+</script>
+</body>
+</html>

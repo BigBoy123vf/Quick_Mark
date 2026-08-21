@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+
+{% block title %}New course · QuickMark{% endblock %}
+
+{% block content %}
+<nav class="console-crumb"><a href="{{ url_for('courses.index') }}">Courses</a><span class="console-crumb__sep">/</span>New</nav>
+
+<header class="console-head">
+  <p class="console-eyebrow">New course</p>
+  <div class="console-head__row">
+    <h1 class="console-title">Create a course</h1>
+  </div>
+  <p class="console-sub">You'll upload the roster and start sessions once it's created.</p>
+</header>
+
+<form class="console-form console-card console-card--form" method="post" action="{{ url_for('courses.new') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label class="console-field">
+    <span class="console-label">Course code</span>
+    <input class="console-input" type="text" name="code" value="{{ code or '' }}"
+           placeholder="e.g. ITC301" required autofocus>
+  </label>
+  <label class="console-field">
+    <span class="console-label">Title</span>
+    <input class="console-input" type="text" name="title" value="{{ title or '' }}"
+           placeholder="e.g. Database Systems" required>
+  </label>
+
+  <div class="console-field">
+    <span class="console-label">Weekly class times (optional)</span>
+    <div class="schedule-rows" id="schedule-rows">
+      <div class="schedule-row">
+        <select class="console-input" name="schedule_day">
+          <option value="">Day</option>
+          <option value="0">Monday</option>
+          <option value="1">Tuesday</option>
+          <option value="2">Wednesday</option>
+          <option value="3">Thursday</option>
+          <option value="4">Friday</option>
+          <option value="5">Saturday</option>
+          <option value="6">Sunday</option>
+        </select>
+        <input class="console-input" type="time" name="schedule_time">
+        <button class="btn btn--ghost btn--sm" type="button" data-remove-schedule-row>Remove</button>
+      </div>
+    </div>
+    <button class="btn btn--ghost btn--sm" type="button" id="add-schedule-row">+ Add another day</button>
+  </div>
+
+  <div class="console-form__row">
+    <a class="btn btn--ghost" href="{{ url_for('courses.index') }}">Cancel</a>
+    <button class="btn btn--primary" type="submit">Create course</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ static_v('js/schedule_rows.js') }}"></script>
+{% endblock %}

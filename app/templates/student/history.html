@@ -1,0 +1,99 @@
+{% extends "student/base.html" %}
+
+{% block title %}History · QuickMark{% endblock %}
+
+{% macro percentage_class(value) -%}
+  {%- if value is none -%}pill--none{%- elif value >= 75 -%}pill--good{%- elif value >= 50 -%}pill--mid{%- else -%}pill--low{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<section class="wrap student-page">
+  <header class="student-page__head">
+    <span class="hero__eyebrow">History</span>
+    <h1 class="student-page__title">Hi {{ current_user.full_name.split(' ')[0] }}<em>.</em></h1>
+  </header>
+
+  {% for session in live_now %}
+    <a class="live-banner" href="{{ url_for('scan.scanner') }}">
+      <span class="live-banner__pip" aria-hidden="true"></span>
+      <span class="live-banner__body">
+        <strong class="live-banner__code">{{ session.course.code }}</strong>
+        <span>is live now, you can check in</span>
+      </span>
+      <span class="live-banner__cta">Scan now →</span>
+    </a>
+  {% endfor %}
+
+  <div class="tallies">
+    <div class="tally"><span class="tally__num">{{ totals.present }}</span><span class="tally__label">Present</span></div>
+    <div class="tally"><span class="tally__num">{{ totals.absent }}</span><span class="tally__label">Absent</span></div>
+  </div>
+
+  {% if course_data %}
+    <h2 class="student-page__sub">Your courses</h2>
+    {% for course, summary, history in course_data %}
+      <section class="course-section {{ '' if loop.first else 'collapsed' }}">
+        <button class="course-section__toggle" type="button" data-course="{{ course.id }}"
+                aria-expanded="{{ 'true' if loop.first else 'false' }}">
+          <span class="course-section__info">
+            <span class="course-section__code">{{ course.code }}</span>
+            <span class="course-section__title">{{ course.title }}</span>
+          </span>
+          <span class="course-section__right">
+            <span class="pill {{ percentage_class(summary.percentage) }}">
+              {% if summary.percentage is none %}-{% else %}{{ summary.percentage }}%{% endif %}
+            </span>
+            <svg class="course-section__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="4 6 8 10 12 6"/>
+            </svg>
+          </span>
+        </button>
+        <div class="course-section__body">
+          {% if history %}
+            {% for session, attended in history %}
+              <div class="course-row course-row--{{ 'present' if attended else 'absent' }}">
+                <span class="course-row__date">
+                  {{ session.started_at.strftime('%a %d %b %Y, %H:%M') }}
+                  {%- if session.ended_at is none %} · <em>class in progress</em>{% endif %}
+                </span>
+                <span class="status-tag {{ 'status-tag--present' if attended else 'status-tag--absent' }}">
+                  {{ 'Present' if attended else 'Absent' }}
+                </span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v3M16 4v3"/></svg>
+              <span>No classes held yet. Sessions appear here after your lecturer runs one.</span>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    {% endfor %}
+
+    {% if recent %}
+      <h2 class="student-page__sub">Recent</h2>
+      <div class="activity">
+        {% for event in recent %}
+          <div class="activity__row">
+            <span class="activity__dot activity__dot--{{ 'present' if event.attended else 'absent' }}"></span>
+            <span class="activity__title">
+              {{ 'Marked present' if event.attended else 'Absent' }} · {{ event.course.code }}
+            </span>
+            <span class="activity__time">{{ event.when_label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-state__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M17 21h.01M21 21v-3"/></svg>
+      </span>
+      <h2 class="empty-state__title">No courses yet<em>.</em></h2>
+      <p class="empty-state__body">Scan a class QR code while a session is live and the course will show up here with your attendance.</p>
+      <a class="btn btn--primary" href="{{ url_for('scan.scanner') }}">Open the scanner</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

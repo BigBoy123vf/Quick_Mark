@@ -1,0 +1,86 @@
+{% extends "student/base.html" %}
+
+{% block title %}Scan · QuickMark{% endblock %}
+
+{% block content %}
+{% if at_limit %}
+<section class="wrap student-page scan-page">
+  <header class="student-page__head">
+    <span class="hero__eyebrow">Device limit reached</span>
+    <h1 class="student-page__title">Can't scan yet</h1>
+    <p class="student-page__lead">You have 2 registered devices and this isn't one of them. Remove a device below to register this one.</p>
+  </header>
+  <button class="btn btn--primary" type="button" data-modal-open="modal-devices">Manage devices</button>
+</section>
+{% else %}
+<section class="wrap student-page scan-page">
+  <header class="student-page__head">
+    <span class="hero__eyebrow">Mark attendance</span>
+    <h1 class="student-page__title">Scan the class code</h1>
+    <p class="student-page__lead">Point your camera at the QR code on the screen or wall. You must be in the room.</p>
+  </header>
+
+  <div class="viewfinder" id="viewfinder">
+    <span class="viewfinder__tag" aria-hidden="true"><i class="viewfinder__pip"></i>// Live viewfinder</span>
+    <span class="viewfinder__corner viewfinder__corner--tl" aria-hidden="true"></span>
+    <span class="viewfinder__corner viewfinder__corner--tr" aria-hidden="true"></span>
+    <span class="viewfinder__corner viewfinder__corner--bl" aria-hidden="true"></span>
+    <span class="viewfinder__corner viewfinder__corner--br" aria-hidden="true"></span>
+
+    <div class="viewfinder-media" id="reader"></div>
+
+    <div class="viewfinder__scanline" aria-hidden="true"></div>
+    <div class="viewfinder__success" id="scan-success" aria-hidden="true">
+      <span class="viewfinder__success-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+    </div>
+  </div>
+
+  <p class="viewfinder-status">
+    <span class="viewfinder-status__dot" aria-hidden="true"></span>
+    <span id="scan-status">Starting camera…</span>
+  </p>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if not at_limit %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  const statusText = document.getElementById('scan-status');
+  const successOverlay = document.getElementById('scan-success');
+  const reader = new Html5Qrcode('reader');
+  let handled = false;
+
+  function goToScan(decodedText) {
+    if (handled) return;
+    handled = true;
+    const marker = '/l/';
+    const markerIndex = decodedText.indexOf(marker);
+    const target = markerIndex >= 0 ? decodedText.substring(markerIndex) : decodedText;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stopCameraAndRedirect = function () {
+      reader.stop().catch(function () {}).finally(function () { window.location.href = target; });
+    };
+    if (statusText) statusText.textContent = 'Code captured';
+    if (prefersReducedMotion || !successOverlay) { stopCameraAndRedirect(); return; }
+    successOverlay.classList.add('is-on');
+    setTimeout(stopCameraAndRedirect, 640);
+  }
+
+  Html5Qrcode.getCameras().then(function (cameras) {
+    if (!cameras || !cameras.length) {
+      statusText.textContent = 'No camera found on this device.';
+      return;
+    }
+    reader.start({ facingMode: 'environment' }, { fps: 10 }, goToScan)
+      .then(function () { statusText.textContent = 'Looking for a code…'; })
+      .catch(function () { statusText.textContent = 'Allow camera access to scan.'; });
+  }).catch(function () {
+    statusText.textContent = 'Allow camera access to scan.';
+  });
+</script>
+{% endif %}
+{% endblock %}

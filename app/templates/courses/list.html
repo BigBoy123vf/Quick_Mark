@@ -1,0 +1,70 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Courses · QuickMark{% endblock %}
+
+{% macro pct_class(value) -%}
+  {%- if value >= 75 -%}console-pct--good{%- elif value >= 50 -%}console-pct--mid{%- else -%}console-pct--low{%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<header class="console-head">
+  <p class="console-eyebrow">Teaching</p>
+  <div class="console-head__row">
+    <div>
+      <h1 class="console-title">Courses</h1>
+      <p class="console-sub">Manage rosters, run live sessions, and track attendance.</p>
+    </div>
+    <a class="btn btn--primary" href="{{ url_for('courses.new') }}">
+      <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      New course
+    </a>
+  </div>
+</header>
+
+<div class="console-stats">
+  <div class="console-stat"><span class="console-stat__num">{{ overview|length }}</span><span class="console-stat__label">Course{{ 's' if overview|length != 1 }}</span></div>
+  <div class="console-stat {{ 'console-stat--live' if live_count }}"><span class="console-stat__num">{{ live_count }}</span><span class="console-stat__label">Live now</span></div>
+  <div class="console-stat"><span class="console-stat__num">{{ enrolled_total }}</span><span class="console-stat__label">Enrolled</span></div>
+</div>
+
+{% if overview %}
+  <ul class="console-list">
+    {% for row in overview %}
+      {% set course = row.course %}
+      <li>
+        <a class="console-crow" href="{{ url_for('courses.detail', course_id=course.id) }}">
+          <span class="console-crow__code">{{ course.code }}</span>
+          <span class="console-crow__body">
+            <span class="console-crow__title">{{ course.title }}</span>
+            {% if row.live %}<span class="console-livechip"><i class="console-pip"></i>Live · {{ row.present }} in</span>{% endif %}
+          </span>
+          <span class="console-crow__meta">
+            <span class="console-fig">
+              <span class="console-fig__num">{{ row.enrolled }}</span>
+              <span class="console-fig__label">Enrolled</span>
+            </span>
+            <span class="console-fig">
+              {% if row.average is not none %}
+                <span class="console-fig__num {{ pct_class(row.average) }}">{{ row.average }}%</span>
+              {% else %}
+                <span class="console-fig__num console-muted">-</span>
+              {% endif %}
+              <span class="console-fig__label">Avg. attendance</span>
+            </span>
+          </span>
+          <span class="console-crow__open">View</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="console-empty">
+    <span class="console-empty__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/></svg>
+    </span>
+    <h2 class="console-empty__title">No courses yet</h2>
+    <p class="console-empty__body">Create your first course, upload its roster, and start a session.</p>
+    <a class="btn btn--primary" href="{{ url_for('courses.new') }}">New course</a>
+  </div>
+{% endif %}
+{% endblock %}

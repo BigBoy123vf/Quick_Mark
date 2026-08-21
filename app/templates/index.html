@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block body_class %}landing-page{% endblock %}
+
+{% block nav %}
+  <a class="landing-nav__link" href="#how">How it works</a>
+  <a class="landing-nav__link" href="#checks">Anti-fraud</a>
+  <a class="landing-nav__link landing-nav__sign" href="{{ url_for('auth.login') }}">Sign in</a>
+  <a class="btn btn--primary btn--sm" href="{{ url_for('auth.register') }}">Get started →</a>
+{% endblock %}
+
+{% block content %}
+<div class="qr-main">
+
+  <!-- ── HERO ── -->
+  <section class="qr-hero">
+
+    <!-- Line art behind the right half -->
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 920 680" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs><clipPath id="landing-clip"><rect width="920" height="680"/></clipPath></defs>
+        <g clip-path="url(#landing-clip)">
+          <line x1="920" y1="260" x2="20.1" y2="1332.5" stroke="#dbeafe" stroke-width="0.6" opacity="0.45"/>
+          <line x1="920" y1="260" x2="-18.1" y2="1299.2" stroke="#dbeafe" stroke-width="0.6" opacity="0.46"/>
+          <line x1="920" y1="260" x2="-55.1" y2="1264.6" stroke="#dbeafe" stroke-width="0.6" opacity="0.47"/>
+          <line x1="920" y1="260" x2="-90.8" y2="1228.7" stroke="#bfdbfe" stroke-width="0.7" opacity="0.48"/>
+          <line x1="920" y1="260" x2="-125.2" y2="1191.5" stroke="#bfdbfe" stroke-width="0.7" opacity="0.49"/>
+          <line x1="920" y1="260" x2="-158.2" y2="1153.0" stroke="#bfdbfe" stroke-width="0.7" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-189.8" y2="1113.4" stroke="#bfdbfe" stroke-width="0.7" opacity="0.51"/>
+          <line x1="920" y1="260" x2="-219.9" y2="1072.7" stroke="#bfdbfe" stroke-width="0.7" opacity="0.52"/>
+          <line x1="920" y1="260" x2="-248.6" y2="1031.0" stroke="#93c5fd" stroke-width="0.8" opacity="0.53"/>
+          <line x1="920" y1="260" x2="-275.7" y2="988.2" stroke="#93c5fd" stroke-width="0.8" opacity="0.54"/>
+          <line x1="920" y1="260" x2="-301.3" y2="944.5" stroke="#93c5fd" stroke-width="0.8" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-325.2" y2="899.8" stroke="#93c5fd" stroke-width="0.8" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-347.6" y2="854.4" stroke="#93c5fd" stroke-width="0.8" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-368.2" y2="808.1" stroke="#60a5fa" stroke-width="0.9" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-387.2" y2="761.2" stroke="#60a5fa" stroke-width="0.9" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-404.5" y2="713.5" stroke="#60a5fa" stroke-width="0.9" opacity="0.55"/>
+          <line x1="920" y1="260" x2="-420.0" y2="665.3" stroke="#60a5fa" stroke-width="0.9" opacity="0.54"/>
+          <line x1="920" y1="260" x2="-433.8" y2="616.6" stroke="#60a5fa" stroke-width="0.9" opacity="0.53"/>
+          <line x1="920" y1="260" x2="-445.8" y2="567.4" stroke="#3b82f6" stroke-width="1.0" opacity="0.52"/>
+          <line x1="920" y1="260" x2="-456.1" y2="517.8" stroke="#3b82f6" stroke-width="1.0" opacity="0.51"/>
+          <line x1="920" y1="260" x2="-464.5" y2="467.8" stroke="#3b82f6" stroke-width="1.0" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-471.1" y2="417.6" stroke="#3b82f6" stroke-width="1.0" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-475.9" y2="367.2" stroke="#3b82f6" stroke-width="1.0" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-478.9" y2="316.6" stroke="#818cf8" stroke-width="1.0" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-480.0" y2="266.0" stroke="#818cf8" stroke-width="0.9" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-479.3" y2="215.3" stroke="#818cf8" stroke-width="0.9" opacity="0.50"/>
+          <line x1="920" y1="260" x2="-476.8" y2="164.7" stroke="#818cf8" stroke-width="0.9" opacity="0.49"/>
+          <line x1="920" y1="260" x2="-472.4" y2="114.3" stroke="#818cf8" stroke-width="0.9" opacity="0.49"/>
+          <line x1="920" y1="260" x2="-466.2" y2="64.0" stroke="#a78bfa" stroke-width="0.9" opacity="0.49"/>
+          <line x1="920" y1="260" x2="-458.2" y2="14.0" stroke="#a78bfa" stroke-width="0.8" opacity="0.48"/>
+          <line x1="920" y1="260" x2="-448.4" y2="-35.7" stroke="#a78bfa" stroke-width="0.8" opacity="0.48"/>
+          <line x1="920" y1="260" x2="-436.8" y2="-85.0" stroke="#a78bfa" stroke-width="0.8" opacity="0.47"/>
+          <line x1="920" y1="260" x2="-423.4" y2="-133.9" stroke="#a78bfa" stroke-width="0.8" opacity="0.46"/>
+          <line x1="920" y1="260" x2="-408.3" y2="-182.2" stroke="#c4b5fd" stroke-width="0.8" opacity="0.45"/>
+          <line x1="920" y1="260" x2="-391.4" y2="-230.0" stroke="#c4b5fd" stroke-width="0.7" opacity="0.45"/>
+          <line x1="920" y1="260" x2="-372.9" y2="-277.1" stroke="#c4b5fd" stroke-width="0.7" opacity="0.44"/>
+          <line x1="920" y1="260" x2="-352.6" y2="-323.6" stroke="#c4b5fd" stroke-width="0.7" opacity="0.43"/>
+          <line x1="920" y1="260" x2="-330.6" y2="-369.2" stroke="#c4b5fd" stroke-width="0.7" opacity="0.42"/>
+          <line x1="920" y1="260" x2="-307.1" y2="-414.0" stroke="#ddd6fe" stroke-width="0.7" opacity="0.41"/>
+          <line x1="920" y1="260" x2="-281.9" y2="-458.0" stroke="#ddd6fe" stroke-width="0.6" opacity="0.40"/>
+          <line x1="920" y1="260" x2="-255.1" y2="-501.0" stroke="#ddd6fe" stroke-width="0.6" opacity="0.39"/>
+          <line x1="920" y1="260" x2="-226.8" y2="-543.0" stroke="#ddd6fe" stroke-width="0.6" opacity="0.38"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hero-inner">
+      <!-- Left: text -->
+      <div class="hero-left">
+        <h1 class="hero-title fade-up delay-1">
+          QuickMark turns roll call into a single <em>scan</em>.
+        </h1>
+
+        <p class="hero-sub fade-up delay-2">
+          No paper lists, no shouted names. Students check in from the browser
+          in <strong>seconds</strong>, and lecturers get <strong>accurate,
+          fraud-checked</strong> records for every course.
+        </p>
+      </div>
+
+      <!-- Right: phone mockup -->
+      <div class="hero-right fade-up delay-2">
+        <div class="landing-phone">
+          <div class="landing-phone__screen">
+          <div class="landing-phone__status">
+            <span class="landing-phone__time">9:41</span>
+            <span class="landing-phone__island" aria-hidden="true"></span>
+            <span class="landing-phone__signals" aria-hidden="true">
+              <svg viewBox="0 0 16 12" width="1.15em" height="0.85em" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="0.8"/><rect x="4.3" y="5.5" width="3" height="6.5" rx="0.8"/><rect x="8.6" y="3" width="3" height="9" rx="0.8"/><rect x="12.9" y="0.5" width="3" height="11.5" rx="0.8"/></svg>
+              <svg viewBox="0 0 16 12" width="1.1em" height="0.85em" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 4.5a10 10 0 0 1 13 0"/><path d="M4 7.3a6.5 6.5 0 0 1 8 0"/><circle cx="8" cy="10.3" r="1.1" fill="currentColor" stroke="none"/></svg>
+              <svg viewBox="0 0 18 10" width="1.4em" height="0.8em"><rect x="0.5" y="0.5" width="14" height="9" rx="2.2" fill="none" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="9" height="6" rx="1" fill="currentColor"/><path d="M16.2 3.2v3.6a1.9 1.9 0 0 0 0-3.6Z" fill="currentColor" opacity="0.5"/></svg>
+            </span>
+          </div>
+          <div class="landing-phone__bar">
+            <span class="landing-phone__brand">QuickMark</span>
+            <span class="landing-phone__av">A</span>
+          </div>
+          <div class="landing-phone__body">
+            <div class="landing-phone__eyebrow">● HISTORY</div>
+            <div class="landing-phone__heading">Hi Frank.</div>
+            <div class="landing-phone__stats">
+              <div class="landing-stat-card">
+                <span class="landing-stat-num">24</span>
+                <span class="landing-stat-label">PRESENT</span>
+              </div>
+              <div class="landing-stat-card">
+                <span class="landing-stat-num">11</span>
+                <span class="landing-stat-label">ABSENT</span>
+              </div>
+            </div>
+            <div class="landing-phone__courses-heading">YOUR COURSES</div>
+            <div class="landing-phone__courses">
+              <div class="landing-course">
+                <div class="landing-course__info">
+                  <span class="landing-course__code">CSCD 101</span>
+                  <span class="landing-course__name">Intro to Computing</span>
+                </div>
+                <span class="landing-course__pct landing-pct--mid">73%</span>
+              </div>
+              <div class="landing-course">
+                <div class="landing-course__info">
+                  <span class="landing-course__code">CSCD 205</span>
+                  <span class="landing-course__name">Data Structures</span>
+                </div>
+                <span class="landing-course__pct landing-pct--mid">67%</span>
+              </div>
+              <div class="landing-course">
+                <div class="landing-course__info">
+                  <span class="landing-course__code">PHYS 101</span>
+                  <span class="landing-course__name">Physics for Scientists</span>
+                </div>
+                <span class="landing-course__pct landing-pct--good">75%</span>
+              </div>
+              <div class="landing-course">
+                <div class="landing-course__info">
+                  <span class="landing-course__code">MATH 122</span>
+                  <span class="landing-course__name">Calculus II</span>
+                </div>
+                <span class="landing-course__pct landing-pct--good">81%</span>
+              </div>
+            </div>
+            <div class="landing-phone__courses-heading landing-phone__courses-heading--recent">RECENT</div>
+            <div class="landing-activity">
+              <div class="landing-act">
+                <span class="landing-act__dot landing-act__dot--ok"></span>
+                <span class="landing-act__title">Marked present · CSCD 205</span>
+                <span class="landing-act__time">09:04</span>
+              </div>
+              <div class="landing-act">
+                <span class="landing-act__dot landing-act__dot--ok"></span>
+                <span class="landing-act__title">Marked present · MATH 122</span>
+                <span class="landing-act__time">Tue</span>
+              </div>
+              <div class="landing-act">
+                <span class="landing-act__dot landing-act__dot--miss"></span>
+                <span class="landing-act__title">Absent · PHYS 101</span>
+                <span class="landing-act__time">Mon</span>
+              </div>
+            </div>
+          </div>
+          <div class="landing-phone__tabs">
+            <span class="landing-tab">⬡ Scan</span>
+            <span class="landing-tab landing-tab--active">◉ History</span>
+            <span class="landing-tab">⚙ Settings</span>
+          </div>
+          <div class="landing-phone__homebar" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-cta fade-up delay-3">
+        <a class="btn btn--primary btn--hero" href="{{ url_for('auth.register') }}">Get started →</a>
+        <a class="btn btn--outline btn--hero" href="#how">See how it works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRINCIPLE ── -->
+  <div class="section-wrap">
+    <div class="pull-quote-wrap">
+      <blockquote class="pull-quote">
+        Calling names costs ten minutes of every lecture. Writing attendance
+        costs ten seconds of every student. A scan on the way in costs
+        nothing extra; class just starts.
+        <cite>The core principle</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- ── ANTI-FRAUD ── -->
+  <section class="section-wrap" id="checks">
+    <span class="section-label">Anti-fraud</span>
+    <h2 class="section-title">Four checks, one honest <em>result</em>.</h2>
+    <p class="section-body">
+      Each scan passes four independent checks so a single weak point can't be exploited.
+      Suspicious cases are logged for a person to review, never auto-blocked.
+    </p>
+    <div class="features-grid">
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        </div>
+        <h3 class="feature-title">One phone per account</h3>
+        <p class="feature-desc">Each account is tied to the phone it first signed in on. A new device is logged for the lecturer, not trusted automatically.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <h3 class="feature-title">Inside the room only</h3>
+        <p class="feature-desc">A scan is accepted only when GPS places the phone in the classroom. Readings too weak to trust are rejected outright.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </div>
+        <h3 class="feature-title">Only while live</h3>
+        <p class="feature-desc">The code works only between Start and End. A code grabbed early or late simply won't count.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></svg>
+        </div>
+        <h3 class="feature-title">No scanning for friends</h3>
+        <p class="feature-desc">If one phone marks several students, it's logged for review, catching anyone signing in for absent classmates.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="how-section" id="how">
+    <div class="section-wrap">
+      <span class="section-label">How it works</span>
+      <h2 class="section-title">How a class <em>runs</em>.</h2>
+      <p class="section-body">Four steps, start to finish: the only sequence the system cares about.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <h3 class="step-title">Start</h3>
+          <p class="step-desc">The lecturer opens the course and taps Start. The phone captures the room location and the QR appears on screen.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <h3 class="step-title">Scan</h3>
+          <p class="step-desc">Students in the room open the scanner and read the code from the screen or wall.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <h3 class="step-title">Present</h3>
+          <p class="step-desc">A valid scan returns a single word: Present. Each student is marked once, no duplicates.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">04</span>
+          <h3 class="step-title">End</h3>
+          <p class="step-desc">The lecturer taps End. Everyone enrolled who didn't scan is marked absent for that class.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ROLES ── -->
+  <section class="section-wrap">
+    <span class="section-label">Who it's for</span>
+    <h2 class="section-title">Built for both sides of the room.</h2>
+    <div class="features-grid" style="margin-top:2rem">
+      <article class="feature-card feature-card--dark">
+        <h3 class="feature-title" style="color:#fff;font-size:1.15rem;margin-bottom:0.8rem">Students</h3>
+        <ul class="role-list role-list--light">
+          <li>✓&ensp;Link your index number once</li>
+          <li>✓&ensp;See every course and attendance %</li>
+          <li>✓&ensp;Scan to mark yourself present</li>
+          <li>✓&ensp;Review your own history</li>
+        </ul>
+        <a class="btn btn--inverse btn--hero" href="{{ url_for('auth.register', role='student') }}">Continue as student</a>
+      </article>
+      <article class="feature-card">
+        <h3 class="feature-title" style="font-size:1.15rem;margin-bottom:0.8rem">Lecturers</h3>
+        <ul class="role-list">
+          <li>✓&ensp;Create courses and upload rosters</li>
+          <li>✓&ensp;Start and end sessions with a tap</li>
+          <li>✓&ensp;Track attendance per class and student</li>
+          <li>✓&ensp;Review anomalies and export</li>
+        </ul>
+        <a class="btn btn--primary btn--hero" href="{{ url_for('auth.register', role='admin') }}">Continue as lecturer</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="section-wrap">
+    <div class="cta-section">
+      <h2 class="cta-title">Ready to take attendance the <em>right</em> way?</h2>
+      <p class="cta-sub">No timetable to configure. Open the session, show the QR, end when class is done.</p>
+      <div class="hero-cta centered">
+        <a class="btn btn--primary btn--hero" href="{{ url_for('auth.register') }}">Get started</a>
+        <a class="btn btn--outline btn--hero" href="{{ url_for('auth.login') }}">Sign in</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="qr-footer">
+    <span class="footer-text">QuickMark</span>
+    <nav class="footer-links">
+      <a href="#how">How it works</a>
+      <a href="#checks">Anti-fraud</a>
+      <a href="{{ url_for('auth.login') }}">Sign in</a>
+    </nav>
+  </footer>
+
+</div>
+{% endblock %}

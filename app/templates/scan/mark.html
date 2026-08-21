@@ -1,0 +1,63 @@
+{% extends "student/base.html" %}
+
+{% block title %}{% if course %}{{ course.code }}{% else %}Mark attendance{% endif %} · QuickMark{% endblock %}
+
+{% block content %}
+<section class="wrap student-page">
+  {% if no_live %}
+    <div class="empty-state">
+      <span class="empty-state__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </span>
+      <h1 class="empty-state__title">No class is live<em>.</em></h1>
+      <p class="empty-state__body">None of {{ lecturer.full_name }}'s classes you're enrolled in are open for scanning right now. Try again once the lecturer starts the session.</p>
+      <a class="btn btn--primary" href="{{ url_for('main.history') }}">Back to history</a>
+    </div>
+  {% else %}
+    <header class="student-page__head">
+      <span class="hero__eyebrow">{{ course.code }}</span>
+      <h1 class="student-page__title">{{ course.title }}</h1>
+      <p class="student-page__lead">Confirm you're in the room to mark yourself present.</p>
+    </header>
+
+    <form method="post" action="{{ url_for('scan.mark', token=lecturer.qr_token) }}" id="mark-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="course_id" value="{{ course.id }}">
+      <input type="hidden" name="latitude">
+      <input type="hidden" name="longitude">
+      <input type="hidden" name="accuracy">
+      <button class="btn btn--primary btn--lg btn--block" type="button" id="mark-btn">Mark me present</button>
+    </form>
+    <p class="mark-status" id="mark-status"></p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if course %}
+<script src="{{ static_v('js/geo.js') }}"></script>
+<script>
+  const markBtn = document.getElementById('mark-btn');
+  const markForm = document.getElementById('mark-form');
+  const markStatus = document.getElementById('mark-status');
+
+  markBtn.addEventListener('click', function () {
+    markBtn.disabled = true;
+    markStatus.textContent = 'Checking you\'re in the room…';
+    captureLocation({
+      onStatus: function (message) { markStatus.textContent = message; },
+      onFail: function (message) {
+        markBtn.disabled = false;
+        markStatus.textContent = message;
+      },
+      onFix: function (coords) {
+        markForm.latitude.value = coords.latitude;
+        markForm.longitude.value = coords.longitude;
+        markForm.accuracy.value = coords.accuracy;
+        markForm.submit();
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

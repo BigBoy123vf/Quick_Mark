@@ -1,0 +1,17 @@
+# Pyti am on System & Artifacts
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Environment Variables & Local Configs
+.env
+instance/
+
+# Databases
+*.db
+*.sqlite3

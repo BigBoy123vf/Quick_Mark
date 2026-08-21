@@ -1,0 +1,15 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Flask-Migrate
+Flask-Limiter
+gunicorn
+python-dotenv
+qrcode[pil]
+psycopg[binary]
+authlib
+requests
+
+# Testing only
+pytest
