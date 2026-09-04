@@ -1,0 +1,31 @@
+<div id="location-picker-backdrop" class="location-picker-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="location-picker-title">
+  <div id="location-picker-sheet" class="location-picker-sheet console-card console-card--pad0">
+    <header class="location-picker-head">
+      <h2 id="location-picker-title" class="location-picker-head__title">Set the room location</h2>
+      <button type="button" id="location-picker-close-btn" class="location-picker-head__close" aria-label="Close">&times;</button>
+    </header>
+    <div class="location-picker-body">
+      <div class="location-picker-map-wrap">
+        <div id="location-picker-map" class="location-picker-map"></div>
+        <p id="location-picker-map-status" class="location-picker-map__status">Loading map…</p>
+      </div>
+      <aside class="location-picker-side">
+        <form id="location-picker-search-form" class="console-field" autocomplete="off">
+          <span class="console-label">Find the building or street</span>
+          <div class="location-picker-search-row">
+            <input id="location-picker-search-input" type="search" class="console-input" placeholder="Building or street name">
+            <button type="submit" class="btn btn--ghost btn--sm">Search</button>
+          </div>
+          <p id="location-picker-search-status" class="console-hint" hidden></p>
+          <ul id="location-picker-search-results" class="location-picker-results" hidden></ul>
+        </form>
+        <p class="console-hint">Click the map to drop a pin on the room, or drag the pin to fine-tune it. The shaded circle shows how far a student can be from the pin and still scan in.</p>
+        <p id="location-picker-error" class="location-picker-error" hidden></p>
+        <div class="location-picker-actions">
+          <button type="button" id="location-picker-cancel-btn" class="btn btn--ghost">Cancel</button>
+          <button type="button" id="location-picker-confirm-btn" class="btn btn--primary" disabled>Use this location</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

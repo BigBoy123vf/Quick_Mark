@@ -1,0 +1,159 @@
+/* Manual map location picker: modal chrome, map, pin, and search results. */
+
+.location-picker-backdrop[hidden] {
+  display: none;
+}
+
+.location-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 200;
+}
+
+.location-picker-sheet {
+  width: min(1200px, 96vw);
+  height: min(880px, 92vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.location-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--line, #e6e9ef);
+}
+
+.location-picker-head__title {
+  font-family: var(--fd, serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.location-picker-head__close {
+  background: none;
+  border: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft, #475569);
+  padding: 0.25rem 0.5rem;
+}
+
+.location-picker-head__close:hover { color: var(--ink, #0f172a); }
+
+.location-picker-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  flex: 1;
+  min-height: 0;
+}
+
+.location-picker-map-wrap {
+  position: relative;
+  background: var(--surface-2, #fbfcfd);
+}
+
+.location-picker-map {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+}
+
+.location-picker-map__status {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  background: var(--surface, #fff);
+  border-radius: var(--radius-xs, 7px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+  font-size: 0.82rem;
+  color: var(--ink-soft, #475569);
+  z-index: 10;
+}
+
+.location-picker-side {
+  padding: 1.1rem;
+  border-left: 1px solid var(--line, #e6e9ef);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  overflow-y: auto;
+}
+
+.location-picker-search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.location-picker-results {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  border: 1px solid var(--line, #e6e9ef);
+  border-radius: var(--radius-sm, 9px);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.location-picker-result-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.65rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line-2, #eef1f5);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.location-picker-result-btn:last-child { border-bottom: 0; }
+.location-picker-result-btn:hover { background: var(--accent-soft, #eef4ff); }
+
+.location-picker-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.location-picker-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+/* Pure CSS pin: a rotated square, no image asset needed. */
+.location-picker-pin-wrap { background: none; border: none; }
+
+.location-picker-pin {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--accent, #2563eb);
+  border: 2px solid var(--surface, #fff);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .location-picker-backdrop { transition: none; }
+}
+
+@media (max-width: 640px) {
+  .location-picker-body { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .location-picker-side { border-left: 0; border-top: 1px solid var(--line, #e6e9ef); }
+  .location-picker-map { min-height: 220px; }
+}

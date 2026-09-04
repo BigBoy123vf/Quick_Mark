@@ -51,22 +51,46 @@
         </form>
       </div>
     {% else %}
+      {% set has_last_location = course.last_location_latitude is not none and course.last_location_longitude is not none %}
       <span class="console-live__eyebrow">Attendance code</span>
       <h2 class="console-live__title">Start a class session</h2>
-      <p class="console-live__note">Starting captures the room location and opens the scan window. Your code stays the same: it routes to whichever class is live. <a href="{{ url_for('courses.my_qr') }}">Open the printable poster</a>.</p>
+      {% if course.requires_location %}
+        <p class="console-live__note">Starting opens the scan window and checks students are in the room. Your code stays the same: it routes to whichever class is live. <a href="{{ url_for('courses.my_qr') }}">Open the printable poster</a>.</p>
+      {% else %}
+        <p class="console-live__note">Starting opens the scan window. Location checking is off for this course, students can scan from anywhere. Your code stays the same: it routes to whichever class is live. <a href="{{ url_for('courses.my_qr') }}">Open the printable poster</a>.</p>
+      {% endif %}
       <div class="console-live__actions">
         <form method="post" action="{{ url_for('courses.start_session', course_id=course.id) }}" id="start-form">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="latitude">
-          <input type="hidden" name="longitude">
-          <input type="hidden" name="accuracy">
-          <button class="btn btn--primary btn--lg" type="button" id="start-btn">Start session</button>
+          <input type="hidden" name="no_location" value="{{ '' if course.requires_location else '1' }}">
+          <input type="hidden" name="latitude" value="{{ course.last_location_latitude if course.requires_location and has_last_location else '' }}">
+          <input type="hidden" name="longitude" value="{{ course.last_location_longitude if course.requires_location and has_last_location else '' }}">
+          <input type="hidden" name="accuracy" value="{{ course.last_location_accuracy if course.requires_location and has_last_location and course.last_location_accuracy is not none else '' }}">
+          {% if not (course.requires_location and not has_last_location) %}
+            <button class="btn btn--primary btn--lg" type="submit">Start session</button>
+          {% endif %}
         </form>
+
+        {% if course.requires_location and not has_last_location %}
+          <button class="btn btn--primary btn--lg" type="button" id="pick-location-btn">Set a room location</button>
+          <button class="btn-text" type="button" id="start-no-location-btn">Start without a location</button>
+        {% elif course.requires_location and has_last_location %}
+          <button class="btn btn--outline" type="button" id="pick-location-btn">Pick a different spot on the map</button>
+          <button class="btn-text" type="button" id="start-no-location-btn">Start without a location instead</button>
+        {% elif not course.requires_location and not has_last_location %}
+          <button class="btn btn--outline" type="button" id="pick-location-btn">Set a room location</button>
+        {% else %}
+          <button class="btn btn--outline" type="button" id="use-last-location-btn">Use last room location</button>
+          <button class="btn-text" type="button" id="pick-location-btn">Pick a different spot on the map</button>
+        {% endif %}
         <p class="console-live__meta" id="geo-status">No live session right now.</p>
       </div>
     {% endif %}
   </div>
 </section>
+{% if not live_session %}
+  {% include "courses/_location_picker.html" %}
+{% endif %}
 
 <section class="console-section">
   <div class="console-section__head">
@@ -207,32 +231,71 @@
     <button class="btn btn--primary console-form__submit" type="submit">Add to roster</button>
   </form>
 </section>
+
+<section class="console-section">
+  <h2 class="console-section__title">Danger zone</h2>
+  <div class="console-card console-card--danger">
+    <p class="console-hint">Deleting a course permanently removes it, its roster, every session, and all attendance history. This cannot be undone.</p>
+    {% if enrollments or sessions %}
+      <p class="console-hint">This course has data. <a href="{{ url_for('courses.export_course', course_id=course.id) }}">Export a CSV backup</a> before deleting.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('courses.delete_course', course_id=course.id) }}"
+          onsubmit="return confirm('Delete {{ course.code }}, {{ course.title }}? This permanently removes the course, its roster, every session, and all attendance history. This cannot be undone.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn--danger btn--sm" type="submit">
+        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        Delete this course
+      </button>
+    </form>
+  </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ static_v('js/geo.js') }}"></script>
+<link rel="stylesheet" href="{{ static_v('css/location-picker.css') }}">
+<script src="{{ static_v('js/location_picker.js') }}"></script>
 <script>
-  const startBtn = document.getElementById('start-btn');
-  if (startBtn) {
-    const startForm = document.getElementById('start-form');
-    const geoStatus = document.getElementById('geo-status');
-    startBtn.addEventListener('click', function () {
-      startBtn.disabled = true;
-      geoStatus.textContent = 'Getting the room location…';
-      captureLocation({
-        onStatus: function (message) { geoStatus.textContent = message; },
-        onFail: function (message) {
-          startBtn.disabled = false;
-          geoStatus.textContent = message;
-        },
-        onFix: function (coords) {
-          geoStatus.textContent = 'Room location captured (±' + Math.round(coords.accuracy) + ' m). Starting…';
-          startForm.latitude.value = coords.latitude;
-          startForm.longitude.value = coords.longitude;
-          startForm.accuracy.value = coords.accuracy;
-          startForm.submit();
-        }
-      });
+  const startForm = document.getElementById('start-form');
+  const geoStatus = document.getElementById('geo-status');
+
+  const startNoLocationBtn = document.getElementById('start-no-location-btn');
+  if (startNoLocationBtn) {
+    startNoLocationBtn.addEventListener('click', function () {
+      startForm.no_location.value = '1';
+      startForm.latitude.value = '';
+      startForm.longitude.value = '';
+      startForm.accuracy.value = '';
+      geoStatus.textContent = 'Starting…';
+      startForm.submit();
+    });
+  }
+
+  const useLastLocationBtn = document.getElementById('use-last-location-btn');
+  if (useLastLocationBtn) {
+    useLastLocationBtn.addEventListener('click', function () {
+      startForm.no_location.value = '';
+      startForm.latitude.value = {{ course.last_location_latitude|tojson }};
+      startForm.longitude.value = {{ course.last_location_longitude|tojson }};
+      startForm.accuracy.value = {{ (course.last_location_accuracy if course.last_location_accuracy is not none else '')|tojson }};
+      geoStatus.textContent = 'Starting…';
+      startForm.submit();
+    });
+  }
+
+  const pickLocationBtn = document.getElementById('pick-location-btn');
+  if (pickLocationBtn) {
+    pickLocationBtn.addEventListener('click', function () {
+      window.openLocationPicker(function (coordinates) {
+        startForm.no_location.value = '';
+        startForm.latitude.value = coordinates.latitude;
+        startForm.longitude.value = coordinates.longitude;
+        // Blank accuracy gives the tightest legal tolerance for a deliberate pin drop.
+        startForm.accuracy.value = '';
+        startForm.submit();
+      }, {% if course.last_location_latitude is not none and course.last_location_longitude is not none %}{
+        latitude: {{ course.last_location_latitude|tojson }},
+        longitude: {{ course.last_location_longitude|tojson }}
+      }{% else %}null{% endif %}, {{ config.CLASSROOM_RADIUS_M|tojson }});
     });
   }
 </script>

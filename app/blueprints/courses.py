@@ -256,20 +256,32 @@ def start_session(course_id):
         flash("A session is already live for this course.", "warning")
         return redirect(url_for("courses.detail", course_id=course.id))
 
-    latitude = parse_coordinate(request.form.get("latitude"))
-    longitude = parse_coordinate(request.form.get("longitude"))
-    accuracy = parse_coordinate(request.form.get("accuracy"))
+    no_location = request.form.get("no_location") == "1"
+    if no_location:
+        session = ClassSession(course_id=course.id)
+        course.requires_location = False
+        # last_location_* stays untouched, so re-enabling later can offer it back.
+    else:
+        latitude = parse_coordinate(request.form.get("latitude"))
+        longitude = parse_coordinate(request.form.get("longitude"))
+        accuracy = parse_coordinate(request.form.get("accuracy"))
 
-    if latitude is None or longitude is None:
-        flash("Couldn't read the room location. Allow location access and try again.", "error")
-        return redirect(url_for("courses.detail", course_id=course.id))
+        if latitude is None or longitude is None:
+            flash("Couldn't read the room location. Pick a spot on the map and try again.", "error")
+            return redirect(url_for("courses.detail", course_id=course.id))
 
-    session = ClassSession(
-        course_id=course.id,
-        latitude=latitude,
-        longitude=longitude,
-        location_accuracy=accuracy,
-    )
+        session = ClassSession(
+            course_id=course.id,
+            latitude=latitude,
+            longitude=longitude,
+            location_accuracy=accuracy,
+        )
+        course.requires_location = True
+        # Remember this spot so the next session start can offer it as a one-tap default.
+        course.last_location_latitude = latitude
+        course.last_location_longitude = longitude
+        course.last_location_accuracy = accuracy
+
     database.session.add(session)
     try:
         database.session.commit()
@@ -428,3 +440,19 @@ def upload_roster(course_id):
     added, skipped = apply_roster(course, read_roster_input())
     flash(f"Roster updated — {added} added, {skipped} already on the list.", "success")
     return redirect(url_for("courses.detail", course_id=course.id))
+
+
+@courses_bp.route("/<int:course_id>/delete", methods=["POST"])
+@lecturer_required
+def delete_course(course_id):
+    course = get_owned_course_or_404(course_id)
+
+    if get_live_session(course):
+        flash("End or discard the live session before deleting this course.", "error")
+        return redirect(url_for("courses.detail", course_id=course.id))
+
+    code = course.code
+    database.session.delete(course)
+    database.session.commit()
+    flash(f"{code} deleted, along with its roster and attendance history.", "success")
+    return redirect(url_for("courses.index"))

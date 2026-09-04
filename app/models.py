@@ -63,6 +63,14 @@ class Course(database.Model):
     title = database.Column(database.String(255), nullable=False)
     lecturer_id = database.Column(database.Integer, database.ForeignKey("users.id"), nullable=False)
     created_at = database.Column(database.DateTime, default=datetime.utcnow, nullable=False)
+    # The room location from the most recent session, GPS or map-picked, so the
+    # next session start can offer "use last room location" instead of re-picking.
+    last_location_latitude = database.Column(database.Float)
+    last_location_longitude = database.Column(database.Float)
+    last_location_accuracy = database.Column(database.Float)
+    # Sticky per course: flips off on a "start without a location" submit, flips
+    # back on the moment the lecturer picks or reuses a location.
+    requires_location = database.Column(database.Boolean, default=True, nullable=False)
 
     lecturer = database.relationship("User", back_populates="taught_courses")
     enrollments = database.relationship(

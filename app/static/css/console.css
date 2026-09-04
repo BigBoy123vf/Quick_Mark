@@ -301,6 +301,7 @@ body.console .app-shell { display: grid; grid-template-columns: 252px 1fr; min-h
 }
 .console-card--pad0 { padding: 0; overflow: hidden; }
 .console-card--form { max-width: 540px; }
+.console-card--danger { border-color: var(--bad-line); background: var(--bad-soft); }
 
 .console-section { margin-top: clamp(2rem, 4vw, 2.8rem); }
 .console-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.9rem; }

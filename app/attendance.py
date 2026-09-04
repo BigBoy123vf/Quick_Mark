@@ -196,41 +196,43 @@ def record_scan(student, course, latitude, longitude, accuracy, device_uuid):
     if AttendanceRecord.query.filter_by(session_id=session.id, student_id=student.id).first():
         return ScanResult("already", "You're already marked present for this class.")
 
-    if latitude is None or longitude is None or accuracy is None:
-        return ScanResult("rejected", "We couldn't read your location. Allow location access and try again.")
-
-    if accuracy > config["GPS_ACCURACY_LIMIT_M"]:
-        return ScanResult("rejected", "Your GPS signal is too weak to trust. Move into the open and try again.")
-
-    if session.latitude is None or session.longitude is None:
-        return ScanResult("rejected", "This session doesn't have a room location set.")
-
     device_hash = hash_device_token(device_uuid)
 
-    distance = haversine_metres(latitude, longitude, session.latitude, session.longitude)
-    # GPS error cuts both ways: a student truly in the room can read tens of
-    # metres out. Allow the radius plus both fixes' reported accuracy (each
-    # already capped by the accuracy gate / the same limit).
-    session_accuracy = min(session.location_accuracy or 0.0, config["GPS_ACCURACY_LIMIT_M"])
-    allowed_distance = config["CLASSROOM_RADIUS_M"] + accuracy + session_accuracy
-    if distance > allowed_distance:
-        log_anomaly(
-            "geofence_far",
-            "info",
-            student,
-            session=session,
-            device_hash=device_hash,
-            details={
-                "distance_m": round(distance),
-                "allowed_m": round(allowed_distance),
-                "radius_m": round(config["CLASSROOM_RADIUS_M"]),
-                "accuracy_m": round(accuracy),
-            },
-        )
-        return ScanResult(
-            "rejected",
-            f"You're not inside the classroom — your phone places you about {round(distance)} m from the room.",
-        )
+    if session.latitude is not None and session.longitude is not None:
+        if latitude is None or longitude is None or accuracy is None:
+            return ScanResult("rejected", "We couldn't read your location. Allow location access and try again.")
+
+        if accuracy > config["GPS_ACCURACY_LIMIT_M"]:
+            return ScanResult("rejected", "Your GPS signal is too weak to trust. Move into the open and try again.")
+
+        distance = haversine_metres(latitude, longitude, session.latitude, session.longitude)
+        # GPS error cuts both ways: a student truly in the room can read tens of
+        # metres out. Allow the radius plus both fixes' reported accuracy (each
+        # already capped by the accuracy gate / the same limit).
+        session_accuracy = min(session.location_accuracy or 0.0, config["GPS_ACCURACY_LIMIT_M"])
+        allowed_distance = config["CLASSROOM_RADIUS_M"] + accuracy + session_accuracy
+        if distance > allowed_distance:
+            log_anomaly(
+                "geofence_far",
+                "info",
+                student,
+                session=session,
+                device_hash=device_hash,
+                details={
+                    "distance_m": round(distance),
+                    "allowed_m": round(allowed_distance),
+                    "radius_m": round(config["CLASSROOM_RADIUS_M"]),
+                    "accuracy_m": round(accuracy),
+                },
+            )
+            return ScanResult(
+                "rejected",
+                f"You're not inside the classroom — your phone places you about {round(distance)} m from the room.",
+            )
+    else:
+        # This session isn't checking location; ignore anything the client sent.
+        latitude = None
+        longitude = None
 
     database.session.add(
         AttendanceRecord(

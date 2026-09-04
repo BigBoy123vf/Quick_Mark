@@ -5,13 +5,20 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from flask_limiter.util import get_remote_address
 from flask_login import current_user, login_required
 
-from ..attendance import live_courses_for_student, record_scan
+from ..attendance import get_live_session, live_courses_for_student, record_scan
 from ..devices import DEVICE_COOKIE_NAME
 from ..extensions import limiter
 from ..models import MAX_DEVICES, Course, StudentDevice, User
 from ..utils import parse_coordinate, parse_int
 
 scan_bp = Blueprint("scan", __name__)
+
+
+def requires_location_for_scan(course):
+    # Defensive: a session could in theory end between listing live courses and
+    # rendering this page, so don't assume one is still there.
+    live_session = get_live_session(course)
+    return bool(live_session and live_session.latitude is not None)
 
 
 def scan_rate_key():
@@ -48,12 +55,18 @@ def scan(token):
     if chosen_id is not None:
         chosen = next((course for course in live_courses if course.id == chosen_id), None)
         if chosen:
-            return render_template("scan/mark.html", lecturer=lecturer, course=chosen, active_tab="scan")
+            return render_template(
+                "scan/mark.html", lecturer=lecturer, course=chosen,
+                requires_location=requires_location_for_scan(chosen), active_tab="scan",
+            )
 
     if not live_courses:
         return render_template("scan/mark.html", lecturer=lecturer, no_live=True, active_tab="scan")
     if len(live_courses) == 1:
-        return render_template("scan/mark.html", lecturer=lecturer, course=live_courses[0], active_tab="scan")
+        return render_template(
+            "scan/mark.html", lecturer=lecturer, course=live_courses[0],
+            requires_location=requires_location_for_scan(live_courses[0]), active_tab="scan",
+        )
     return render_template("scan/pick.html", lecturer=lecturer, courses=live_courses, active_tab="scan")
 
 

@@ -17,7 +17,11 @@
     <header class="student-page__head">
       <span class="hero__eyebrow">{{ course.code }}</span>
       <h1 class="student-page__title">{{ course.title }}</h1>
-      <p class="student-page__lead">Confirm you're in the room to mark yourself present.</p>
+      {% if requires_location %}
+        <p class="student-page__lead">Confirm you're in the room to mark yourself present.</p>
+      {% else %}
+        <p class="student-page__lead">Tap below to mark yourself present.</p>
+      {% endif %}
     </header>
 
     <form method="post" action="{{ url_for('scan.mark', token=lecturer.qr_token) }}" id="mark-form">
@@ -26,7 +30,7 @@
       <input type="hidden" name="latitude">
       <input type="hidden" name="longitude">
       <input type="hidden" name="accuracy">
-      <button class="btn btn--primary btn--lg btn--block" type="button" id="mark-btn">Mark me present</button>
+      <button class="btn btn--primary btn--lg btn--block" type="{{ 'submit' if not requires_location else 'button' }}" id="mark-btn">Mark me present</button>
     </form>
     <p class="mark-status" id="mark-status"></p>
   {% endif %}
@@ -34,7 +38,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if course %}
+{% if course and requires_location %}
 <script src="{{ static_v('js/geo.js') }}"></script>
 <script>
   const markBtn = document.getElementById('mark-btn');
